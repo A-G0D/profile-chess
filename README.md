@@ -13,15 +13,15 @@ scripts/proof.sh              # plays three moves through /click, saves SVGs and
 Embed it as a server-side image map:
 
 ```html
-<a href="https://YOUR-WORKER.workers.dev/click"><img src="https://YOUR-WORKER.workers.dev/canvas.svg" width="800" ismap></a>
+<a href="https://YOUR-WORKER.workers.dev/click"><img src="https://YOUR-WORKER.workers.dev/canvas.svg" width="400" ismap></a>
 ```
 
 ## How it works
 
-- `ismap`: a link wrapping an `<img ismap>` makes the browser request `/click?x,y`, with the pixel offset inside the image. The Worker maps that to a square, applies the move and answers 302 to the profile. The image must display at its natural 800 px width or the coordinates do not line up with the board.
+- `ismap`: a link wrapping an `<img ismap>` makes the browser request `/click?x,y`, with the pixel offset inside the image. The Worker maps that to a square, applies the move and answers 302 to the profile. The image must display at its natural 400 px width or the coordinates do not line up with the board.
 - camo: GitHub serves README images through its camo proxy, so the visitor's browser never talks to the Worker for the picture. The click is a normal navigation to the Worker, which is why it can carry coordinates and a rate-limit key.
 - Durable Object: one SQLite-backed object holds the game, the shared selection, the score and the rate-limit table `rl`. Every request goes through it, so clicks are serialised.
-- Flow: clicking a white piece stores it as the selection for 90 s and the board shows it highlighted with dots on its legal targets. Clicking a dot plays the move (promotion is always a queen) and the engine replies in the same request. Any other click clears the selection. After mate, stalemate, the 50-move rule, threefold repetition or insufficient material, the status line shows the result and the next click starts a new game. Score is counted from finished games: visitors, engine, draws.
+- Flow: clicking a white piece stores it as the selection for 90 s and the board shows it highlighted with dots on its legal targets. Clicking a dot plays the move (promotion is always a queen) and the engine replies in the same request. Any other click clears the selection. After mate, stalemate, the 50-move rule, threefold repetition or insufficient material, the board stops and the next click starts a new game. The image has no text: only the board, selection highlight and move dots.
 - Rate limit: per IP hash, 3 s between clicks and 300 per day.
 - Routes: `GET /canvas.svg`, `GET /click?x,y`, `POST /admin/reset` (new game), `POST /admin/rollback?plies=N` (undo the last N plies). Both admin routes need the `X-Admin-Token` header.
 - Old `cells` and `log` tables from the pixel canvas are kept and no longer rendered.

@@ -1,4 +1,4 @@
-export const W = 800, H = 440;
+export const W = 400, H = 400;
 
 // Returns {x,y} for a raw query string like "?400,200", else null.
 export function parseClick(search) {

@@ -2,8 +2,8 @@
 import { Position, START, isUpper, outcome, uci } from "./chess.js";
 import { bestMove } from "./engine.js";
 
-export const SEL_MS = 90000, GAP_MS = 3000, DAY_MAX = 300, DAY_MS = 86400000;
-export const CELL = 50, OX = 28, OY = 14; // board geometry, shared with render.js
+export const SEL_MS = 90000, GAP_MS = 1500, DAY_MAX = 300, DAY_MS = 86400000;
+export const CELL = 50, OX = 0, OY = 0; // board geometry, shared with render.js
 
 /** Square index (a1 = 0) under pixel x,y, or null when outside the board. White is at the bottom. */
 export function hitSquare(x, y) {
@@ -53,6 +53,9 @@ function push(s, pos, m, seen) {
   }
   return [out, next];
 }
+
+/** True when a click played a move or restarted the game; only those are rate limited (selecting a piece is free). */
+export const isPlay = (a, b) => b.game !== a.game || b.moves.length !== a.moves.length;
 
 /** One visitor click. sq is a square index or null. Returns the next state. */
 export function click(state, sq, now) {

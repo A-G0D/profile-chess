@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { newGame, click, hitSquare, rateLimit, positionOf, liveSel, CELL, OX, OY, SEL_MS, GAP_MS, DAY_MAX, DAY_MS } from "../src/game.js";
+import { newGame, click, isPlay, hitSquare, rateLimit, positionOf, liveSel, CELL, OX, OY, SEL_MS, GAP_MS, DAY_MAX, DAY_MS } from "../src/game.js";
 import { square, Position } from "../src/chess.js";
 
 const T = 1e9;
@@ -11,7 +11,7 @@ test("hitSquare maps pixels to squares", () => {
   assert.equal(hitSquare(OX + 1, OY + 7 * CELL + 1), at("a1"));
   assert.equal(hitSquare(OX + 4 * CELL + 5, OY + 6 * CELL + 5), at("e2"));
   assert.equal(hitSquare(OX + 8 * CELL, OY), null);
-  assert.equal(hitSquare(5, 5), null);
+  assert.equal(hitSquare(5, 5), at("a8")); // board fills the image, no margin
   assert.equal(hitSquare(OX, OY + 8 * CELL), null);
 });
 test("select a white piece", () => {
@@ -86,4 +86,11 @@ test("cold path: first engine reply in a fresh isolate is capped at COLD_CAP, la
   const a = bestMove(pos, 1, 20), b = bestMove(pos, 1, 20);
   assert.ok(a.nodes <= COLD_CAP + 1 && a.move);
   assert.ok(b.nodes > COLD_CAP && b.nodes <= NODE_CAP + 1);
+});
+
+test("selecting is not a play; select then move inside the rate-limit gap still moves", () => {
+  const a = s0(), b = click(a, at("e2"), T), c = click(b, at("e4"), T + 200);
+  assert.equal(isPlay(a, b), false);
+  assert.equal(isPlay(b, c), true);
+  assert.equal(c.moves[0].uci.slice(0, 4), "e2e4");
 });

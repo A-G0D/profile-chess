@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { parseClick } from "./lib.js";
-import { hitSquare, rateLimit, newGame, click } from "./game.js";
+import { hitSquare, rateLimit, newGame, click, isPlay } from "./game.js";
 import { renderSvg } from "./render.js";
 
 const HOME = "https://github.com/A-G0D";
@@ -47,12 +47,13 @@ export class Canvas extends DurableObject {
 
   /** Whole click is one synchronous method, so concurrent clicks cannot interleave. */
   click(ip, x, y) {
-    const now = Date.now();
-    const row = rateLimit(this.q("SELECT last,day_start,n FROM rl WHERE ip=?", ip)[0], now);
-    if (!row) return false;
-    this.sql.exec("INSERT OR REPLACE INTO rl VALUES(?,?,?,?)", ip, row.last, row.day_start, row.n);
-    const before = this.load();
-    this.save(before, click(before, hitSquare(x, y), now), now);
+    const now = Date.now(), before = this.load(), after = click(before, hitSquare(x, y), now);
+    if (isPlay(before, after)) {
+      const row = rateLimit(this.q("SELECT last,day_start,n FROM rl WHERE ip=?", ip)[0], now);
+      if (!row) return false;
+      this.sql.exec("INSERT OR REPLACE INTO rl VALUES(?,?,?,?)", ip, row.last, row.day_start, row.n);
+    }
+    this.save(before, after, now);
     return true;
   }
 
