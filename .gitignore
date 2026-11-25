@@ -1,0 +1,5 @@
+.admin-token
+node_modules
+.wrangler
+.dev.vars
+shots/

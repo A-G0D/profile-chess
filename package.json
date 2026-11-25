@@ -1,0 +1,1 @@
+{"name":"a-g0d-canvas","private":true,"type":"module","scripts":{"test":"node --test test/*.test.js"}}
